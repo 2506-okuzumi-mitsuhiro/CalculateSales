@@ -1,8 +1,10 @@
 package jp.alhinc.calculate_sales;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +41,7 @@ public class CalculateSales {
 		}
 
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
-		//売上ファイル集計処理
+		// 売上ファイル集計処理
 		if(!aggregateSalesFile(args[0], branchNames, branchSales)) {
 			return;
 		}
@@ -73,13 +75,13 @@ public class CalculateSales {
 			while((line = br.readLine()) != null) {
 				// ※ここの読み込み処理を変更してください。(処理内容1-2)
 
-				//読み取った一行のデータを「,」(カンマ)で「支店コード」と「支店名」に分割
+				// 読み取った一行のデータを「,」(カンマ)で「支店コード」と「支店名」に分割
 				String[] branchInformation = line.split(",");
 
-				//支店情報用Mapに値を代入
+				// 支店情報用Mapに値を代入
 				branchNames.put(branchInformation[0], branchInformation[1]);
 
-				//売上情報用Mapに値を代入
+				// 売上情報用Mapに値を代入
 				branchSales.put(branchInformation[0], (long) 0);
 
 				System.out.println(line);
@@ -114,6 +116,40 @@ public class CalculateSales {
 	 */
 	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames, Map<String, Long> branchSales) {
 		// ※ここに書き込み処理を作成してください。(処理内容3-1)
+		File file = new File(path, fileName);
+
+		BufferedWriter bw = null;
+
+		try {
+			FileWriter fw = new FileWriter(file, true);
+
+			bw = new BufferedWriter(fw);
+
+			// 集計結果を支店別集計ファイルに出力
+			for(String branchNumber: branchNames.keySet()) {
+				bw.write(branchNumber + "," + branchNames.get(branchNumber) + "," + branchSales.get(branchNumber));
+				bw.newLine();
+			}
+
+		} catch (IOException e) {
+			// TODO 自動生成された catch ブロック
+			e.printStackTrace();
+			System.out.println(UNKNOWN_ERROR);
+
+			return false;
+		} finally {
+			if(bw != null) {
+				try {
+					bw.close();
+				} catch (IOException e) {
+					// TODO 自動生成された catch ブロック
+					e.printStackTrace();
+					System.out.println(UNKNOWN_ERROR);
+
+					return false;
+				}
+			}
+		}
 
 		return true;
 	}
@@ -127,19 +163,19 @@ public class CalculateSales {
 	 * @return 読み込み可否
 	 */
 	private static boolean aggregateSalesFile(String path, Map<String, String> branchNames, Map<String, Long> branchSales) {
-		//指定パス内の全てのファイル情報を取得
+		// 指定パス内の全てのファイル情報を取得
 		File[] allFiles = new File(path).listFiles();
 
 		List<File> rcdFiles = new ArrayList<>();
 
-		//売上ファイルの抽出
+		// 売上ファイルの抽出
 		for(int i = 0; i < allFiles.length; i++) {
 			if(allFiles[i].getName().matches("^[0-9]{8}\\.rcd$")) {
 				rcdFiles.add(allFiles[i]);
 			}
 		}
 
-		//支店ごとに売上を合算
+		// 支店ごとに売上を合算
 		for(int i = 0; i < rcdFiles.size(); i++) {
 			BufferedReader br = null;
 
@@ -150,22 +186,32 @@ public class CalculateSales {
 				String line;
 				List<String> salesFileItems = new ArrayList<>();
 
-				//支店コード、売上金額の取得
+				// 支店コード、売上金額の取得
 				while((line = br.readLine()) != null) {
 					salesFileItems.add(line);
 				}
 
 				Long salesAmount = Long.parseLong(salesFileItems.get(1));
 
-				//売上金額の合算処理
+				// 売上金額の合算処理
 				Long totalAmount = branchSales.get(salesFileItems.get(0)) + salesAmount;
 
-				//売上金額を売上情報用Mapに反映
+				// 売上金額を売上情報用Mapに反映
 				branchSales.put(salesFileItems.get(0), totalAmount);
 
 			} catch (IOException e) {
 				// TODO 自動生成された catch ブロック
 				e.printStackTrace();
+				return false;
+			} finally {
+				if(br != null) {
+					try {
+						br.close();
+					} catch (IOException e) {
+						// TODO 自動生成された catch ブロック
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 
