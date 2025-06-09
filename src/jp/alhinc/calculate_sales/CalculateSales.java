@@ -106,55 +106,6 @@ public class CalculateSales {
 	}
 
 	/**
-	 * 支店別集計ファイル書き込み処理
-	 *
-	 * @param フォルダパス
-	 * @param ファイル名
-	 * @param 支店コードと支店名を保持するMap
-	 * @param 支店コードと売上金額を保持するMap
-	 * @return 書き込み可否
-	 */
-	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames, Map<String, Long> branchSales) {
-		// ※ここに書き込み処理を作成してください。(処理内容3-1)
-		File file = new File(path, fileName);
-
-		BufferedWriter bw = null;
-
-		try {
-			FileWriter fw = new FileWriter(file, true);
-
-			bw = new BufferedWriter(fw);
-
-			// 集計結果を支店別集計ファイルに出力
-			for(String branchNumber: branchNames.keySet()) {
-				bw.write(branchNumber + "," + branchNames.get(branchNumber) + "," + branchSales.get(branchNumber));
-				bw.newLine();
-			}
-
-		} catch (IOException e) {
-			// TODO 自動生成された catch ブロック
-			e.printStackTrace();
-			System.out.println(UNKNOWN_ERROR);
-
-			return false;
-		} finally {
-			if(bw != null) {
-				try {
-					bw.close();
-				} catch (IOException e) {
-					// TODO 自動生成された catch ブロック
-					e.printStackTrace();
-					System.out.println(UNKNOWN_ERROR);
-
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
-	/**
 	 * 売上ファイル集計処理
 	 *
 	 * @param フォルダパス
@@ -211,6 +162,55 @@ public class CalculateSales {
 						// TODO 自動生成された catch ブロック
 						e.printStackTrace();
 					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * 支店別集計ファイル書き込み処理
+	 *
+	 * @param フォルダパス
+	 * @param ファイル名
+	 * @param 支店コードと支店名を保持するMap
+	 * @param 支店コードと売上金額を保持するMap
+	 * @return 書き込み可否
+	 */
+	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames, Map<String, Long> branchSales) {
+		// ※ここに書き込み処理を作成してください。(処理内容3-1)
+		File file = new File(path, fileName);
+
+		BufferedWriter bw = null;
+
+		try {
+			FileWriter fw = new FileWriter(file, true);
+
+			bw = new BufferedWriter(fw);
+
+			// 集計結果を支店別集計ファイルに出力
+			for(String branchNumber: branchNames.keySet()) {
+				bw.write(branchNumber + "," + branchNames.get(branchNumber) + "," + branchSales.get(branchNumber));
+				bw.newLine();
+			}
+
+		} catch (IOException e) {
+			// TODO 自動生成された catch ブロック
+			e.printStackTrace();
+			System.out.println(UNKNOWN_ERROR);
+
+			return false;
+		} finally {
+			if(bw != null) {
+				try {
+					bw.close();
+				} catch (IOException e) {
+					// TODO 自動生成された catch ブロック
+					e.printStackTrace();
+					System.out.println(UNKNOWN_ERROR);
+
+					return false;
 				}
 			}
 		}
