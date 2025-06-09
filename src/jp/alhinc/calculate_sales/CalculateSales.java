@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,10 @@ public class CalculateSales {
 	private static final String UNKNOWN_ERROR = "予期せぬエラーが発生しました";
 	private static final String FILE_NOT_EXIST = "支店定義ファイルが存在しません";
 	private static final String FILE_INVALID_FORMAT = "支店定義ファイルのフォーマットが不正です";
+	private static final String SALES_FILE_NOT_SERIAL = "売上ファイル名が連番になっていません";
+	private static final String EXCESSIVE_DIGIT = "合計金額が10桁を超えました";
+	private static final String BRANCH_CODE_NOT_EXIST = "の支店コードが不正です";
+	private static final String SALES_FILE_INVALID_FORMAT = "のフォーマットが不正です";
 
 	/**
 	 * メインメソッド
@@ -67,6 +72,13 @@ public class CalculateSales {
 
 		try {
 			File file = new File(path, fileName);
+
+			// 支店定義ファイルの存在確認
+			if(!file.exists()) {
+				System.out.println(FILE_NOT_EXIST);
+				return false;
+			}
+
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
 
@@ -77,6 +89,12 @@ public class CalculateSales {
 
 				// 読み取った一行のデータを「,」(カンマ)で「支店コード」と「支店名」に分割
 				String[] branchInformation = line.split(",");
+
+				//支店定義ファイルのフォーマット確認
+				if((branchInformation.length != 2) || (!branchInformation[0].matches("^[0-9]{3}$"))) {
+					System.out.println(FILE_INVALID_FORMAT);
+					return false;
+				}
 
 				// 支店情報用Mapに値を代入
 				branchNames.put(branchInformation[0], branchInformation[1]);
@@ -126,6 +144,20 @@ public class CalculateSales {
 			}
 		}
 
+		//売上ファイルのソート
+		Collections.sort(rcdFiles);
+
+		//売上ファイルのファイル名連番確認
+		for(int i = 0; i < (rcdFiles.size() - 1); i++) {
+			int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
+			int latter = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0, 8));
+
+			if((latter - former) != 1) {
+				System.out.println(SALES_FILE_NOT_SERIAL);
+				return false;
+			}
+		}
+
 		// 支店ごとに売上を合算
 		for(int i = 0; i < rcdFiles.size(); i++) {
 			BufferedReader br = null;
@@ -142,10 +174,27 @@ public class CalculateSales {
 					salesFileItems.add(line);
 				}
 
+				//支店コードの存在確認
+				if(!branchNames.containsKey(salesFileItems.get(0))) {
+					System.out.println("「" + rcdFiles.get(i).getName() + "」" + BRANCH_CODE_NOT_EXIST);
+					return false;
+				}
+
+				if(salesFileItems.size() != 2) {
+					System.out.println("「" + rcdFiles.get(i).getName() + "」" + SALES_FILE_INVALID_FORMAT);
+					return false;
+				}
+
 				Long salesAmount = Long.parseLong(salesFileItems.get(1));
 
 				// 売上金額の合算処理
 				Long totalAmount = branchSales.get(salesFileItems.get(0)) + salesAmount;
+
+				//売上合計金額の桁数確認
+				if(totalAmount >= 10000000000L) {
+					System.out.println(EXCESSIVE_DIGIT);
+					return false;
+				}
 
 				// 売上金額を売上情報用Mapに反映
 				branchSales.put(salesFileItems.get(0), totalAmount);
