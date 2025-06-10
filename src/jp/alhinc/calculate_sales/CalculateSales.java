@@ -40,6 +40,12 @@ public class CalculateSales {
 		// 支店コードと売上金額を保持するMap
 		Map<String, Long> branchSales = new HashMap<>();
 
+		// コマンドライン引数の確認
+		if(args.length != 1) {
+			System.out.println(UNKNOWN_ERROR);
+			return;
+		}
+
 		// 支店定義ファイル読み込み処理
 		if(!readFile(args[0], FILE_NAME_BRANCH_LST, branchNames, branchSales)) {
 			return;
@@ -90,7 +96,7 @@ public class CalculateSales {
 				// 読み取った一行のデータを「,」(カンマ)で「支店コード」と「支店名」に分割
 				String[] branchInformation = line.split(",");
 
-				//支店定義ファイルのフォーマット確認
+				// 支店定義ファイルのフォーマット確認
 				if((branchInformation.length != 2) || (!branchInformation[0].matches("^[0-9]{3}$"))) {
 					System.out.println(FILE_INVALID_FORMAT);
 					return false;
@@ -139,15 +145,15 @@ public class CalculateSales {
 
 		// 売上ファイルの抽出
 		for(int i = 0; i < allFiles.length; i++) {
-			if(allFiles[i].getName().matches("^[0-9]{8}\\.rcd$")) {
+			if(allFiles[i].isFile() && allFiles[i].getName().matches("^[0-9]{8}\\.rcd$")) {
 				rcdFiles.add(allFiles[i]);
 			}
 		}
 
-		//売上ファイルのソート
+		// 売上ファイルのソート
 		Collections.sort(rcdFiles);
 
-		//売上ファイルのファイル名連番確認
+		// 売上ファイルのファイル名連番確認
 		for(int i = 0; i < (rcdFiles.size() - 1); i++) {
 			int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
 			int latter = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0, 8));
@@ -174,7 +180,7 @@ public class CalculateSales {
 					salesFileItems.add(line);
 				}
 
-				//支店コードの存在確認
+				// 支店コードの存在確認
 				if(!branchNames.containsKey(salesFileItems.get(0))) {
 					System.out.println("「" + rcdFiles.get(i).getName() + "」" + BRANCH_CODE_NOT_EXIST);
 					return false;
@@ -185,12 +191,18 @@ public class CalculateSales {
 					return false;
 				}
 
+				// 売上金額が数字であるかの確認
+				if(!salesFileItems.get(1).matches("^[0-9]{1,}$")) {
+					System.out.println(UNKNOWN_ERROR);
+					return false;
+				}
+
 				Long salesAmount = Long.parseLong(salesFileItems.get(1));
 
 				// 売上金額の合算処理
 				Long totalAmount = branchSales.get(salesFileItems.get(0)) + salesAmount;
 
-				//売上合計金額の桁数確認
+				// 売上合計金額の桁数確認
 				if(totalAmount >= 10000000000L) {
 					System.out.println(EXCESSIVE_DIGIT);
 					return false;
