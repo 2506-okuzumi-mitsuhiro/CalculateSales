@@ -35,16 +35,16 @@ public class CalculateSales {
 	 * @param コマンドライン引数
 	 */
 	public static void main(String[] args) {
-		// 支店コードと支店名を保持するMap
-		Map<String, String> branchNames = new HashMap<>();
-		// 支店コードと売上金額を保持するMap
-		Map<String, Long> branchSales = new HashMap<>();
-
 		// コマンドライン引数の確認
 		if(args.length != 1) {
 			System.out.println(UNKNOWN_ERROR);
 			return;
 		}
+
+		// 支店コードと支店名を保持するMap
+		Map<String, String> branchNames = new HashMap<>();
+		// 支店コードと売上金額を保持するMap
+		Map<String, Long> branchSales = new HashMap<>();
 
 		// 支店定義ファイル読み込み処理
 		if(!readFile(args[0], FILE_NAME_BRANCH_LST, branchNames, branchSales)) {
@@ -180,14 +180,15 @@ public class CalculateSales {
 					salesFileItems.add(line);
 				}
 
-				// 支店コードの存在確認
-				if(!branchNames.containsKey(salesFileItems.get(0))) {
-					System.out.println("「" + rcdFiles.get(i).getName() + "」" + BRANCH_CODE_NOT_EXIST);
+				//売上ファイルのフォーマット確認
+				if(salesFileItems.size() != 2) {
+					System.out.println("「" + rcdFiles.get(i).getName() + "」" + SALES_FILE_INVALID_FORMAT);
 					return false;
 				}
 
-				if(salesFileItems.size() != 2) {
-					System.out.println("「" + rcdFiles.get(i).getName() + "」" + SALES_FILE_INVALID_FORMAT);
+				// 支店コードの存在確認
+				if(!branchNames.containsKey(salesFileItems.get(0))) {
+					System.out.println("「" + rcdFiles.get(i).getName() + "」" + BRANCH_CODE_NOT_EXIST);
 					return false;
 				}
 
